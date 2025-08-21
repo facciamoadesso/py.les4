@@ -1,20 +1,34 @@
 from PIL import Image
 
-red = Image.open("red_channel.jpg")
-red_left = red.crop((50, 0, red.width, red.height))
-red_middle = red.crop((25, 0, red.width - 25, red.height))
-blended_red = Image.blend(red_left, red_middle, 0.5).crop((0, 0, 595, 522))
+original = Image.open("monro.jpg")
+red, green, blue = original.split()
 
-blue = Image.open("blue_channel.jpg")
-blue_right = blue.crop((0, 0, blue.width-50, blue.height))
-blue_middle = blue.crop((25, 0, blue.width - 25, blue.height))
-blended_blue = Image.blend(blue_right, blue_middle, 0.5).crop((0, 0, 595, 522))
+def blend_from_two_crops(channel, crop1, crop2):
+    return Image.blend(
+        channel.crop(crop1),
+        channel.crop(crop2),
+        0.5
+    ).crop((0, 0, 595, 522))
 
-green = Image.open("green_channel.jpg").crop((25, 0, 620, 522))
+blended_red = blend_from_two_crops(
+    red,
+    (50, 0, red.width, red.height),
+    (25, 0, red.width - 25, red.height)
+)
 
-final_merged = Image.merge("RGB", (blended_red, green, blended_blue))
+blended_blue = blend_from_two_crops(
+    blue,
+    (0, 0, blue.width - 50, blue.height),
+    (25, 0, blue.width - 25, blue.height)
+)
+
+cropped_green = green.crop((25, 0, 620, 522))
+
+final_merged = Image.merge("RGB", (blended_red, cropped_green, blended_blue))
 final_merged.save("merged_channels.jpg")
 
-avatar = Image.open("merged_channels.jpg")
+avatar = final_merged.copy()
 avatar.thumbnail((80, 80))
 avatar.save("avatar.jpg")
+
+
